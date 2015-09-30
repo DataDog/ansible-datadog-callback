@@ -105,7 +105,7 @@ class CallbackModule(object):
 
     @staticmethod
     def pluralize(number, noun):
-        if number <= 1:
+        if number == 1:
             return "{0} {1}".format(number, noun)
 
         return "{0} {1}s".format(number, noun)
