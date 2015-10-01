@@ -124,7 +124,7 @@ class CallbackModule(object):
 
     def runner_on_ok(self, host, res):
         # Only send an event when the task has changed on the host
-        if res['changed']:
+        if res.get('changed'):
             event_text = "$$$\n{0}[{1}]\n$$$\n".format(res['invocation']['module_name'], res['invocation']['module_args'])
             self.send_task_event(
                 'Ansible task changed on "{0}"'.format(host),
