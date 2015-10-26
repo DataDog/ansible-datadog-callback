@@ -2,8 +2,13 @@ import getpass
 import os.path
 import time
 
-import datadog
-import yaml
+try:
+    import datadog
+    import yaml
+    HAS_MODULES = True
+except ImportError:
+    HAS_MODULES = False
+
 
 from ansible.plugins.callback import CallbackBase
 from __main__ import cli
@@ -11,6 +16,9 @@ from __main__ import cli
 
 class CallbackModule(CallbackBase):
     def __init__(self):
+        if not HAS_MODULES:
+            self.disabled = True
+            print 'Datadog callback disabled.\nMake sure you call all required libraries.'
 
         self._playbook_name = None
         self._start_time = time.time()
@@ -197,7 +205,8 @@ class CallbackModule(CallbackBase):
     def v2_playbook_on_play_start(self, play):
         # On Ansible v2, Ansible doesn't set `self.play` automatically
         self.play = play
-        self.disabled = False
+        if self.disabled:
+            return
 
         # Read config and hostvars
         api_key, url = self._load_conf(os.path.join(os.path.dirname(__file__), "datadog_callback.yml"))
