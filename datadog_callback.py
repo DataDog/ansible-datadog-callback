@@ -3,13 +3,13 @@ import time
 
 import datadog
 import yaml
-
+config_file = "datadog_callback.yml"
 
 class CallbackModule(object):
     def __init__(self):
-        # Read config and set up API client
-        api_key, url = self._load_conf(os.path.join(os.path.dirname(__file__), "datadog_callback.yml"))
-        datadog.initialize(api_key=api_key, api_host=url)
+        if not os.path.isfile(os.path.join(os.path.dirname(__file__),config_file)):
+            self.disabled = True
+            print 'Event sending to datadog disabled.\nMake sure you have "{0}" configuration file.'.format(config_file)
 
         self._playbook_name = None
         self._start_time = time.time()
@@ -144,6 +144,10 @@ class CallbackModule(object):
         )
 
     def playbook_on_start(self):
+        # Read config and set up API client
+        api_key, url = self._load_conf(os.path.join(os.path.dirname(__file__), config_file))
+        datadog.initialize(api_key=api_key, api_host=url)
+
         # Retrieve the playbook name from its filename
         self._playbook_name, _ = os.path.splitext(
             os.path.basename(self.playbook.filename))
