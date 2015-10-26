@@ -9,7 +9,7 @@ class CallbackModule(object):
     def __init__(self):
         if not os.path.isfile(os.path.join(os.path.dirname(__file__),config_file)):
             self.disabled = True
-            print 'Event sending to datadog disabled.\nMake sure you have "{0}" configuration file.'.format(config_file)
+            print 'Datadog callback disabled.\nMake sure you have "{0}" configuration file.'.format(config_file)
 
         self._playbook_name = None
         self._start_time = time.time()
