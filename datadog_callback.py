@@ -1,12 +1,21 @@
 import os.path
 import time
 
-import datadog
-import yaml
+try:
+    import datadog
+    import yaml
+    HAS_MODULES = True
+except ImportError:
+    HAS_MODULES = False
+
 config_file = "datadog_callback.yml"
 
 class CallbackModule(object):
     def __init__(self):
+        if not HAS_MODULES:
+            self.disabled = True
+            print 'Datadog callback disabled.\nMake sure you call all required libraries.'
+
         if not os.path.isfile(os.path.join(os.path.dirname(__file__),config_file)):
             self.disabled = True
             print 'Datadog callback disabled.\nMake sure you have "{0}" configuration file.'.format(config_file)
