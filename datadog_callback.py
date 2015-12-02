@@ -112,25 +112,45 @@ class CallbackModule(object):
 
     ### Ansible callbacks ###
     def runner_on_failed(self, host, res, ignore_errors=False):
-        event_text = "$$$\n{0}[{1}]\n$$$\n".format(res['invocation']['module_name'], res['invocation']['module_args'])
-        event_text += "$$$\n{0}\n$$$\n".format(res['msg'])
+        # Handle missing invocation key and no_log: True tasks
+        module_name = ""
+        msg = res.get('msg')
+
+        if res.get('censored'):
+            event_text = res.get('censored')
+        elif not res.get('invocation'):
+            event_text = msg
+        else:
+            event_text = "$$$\n{0}[{1}]\n$$$\n".format(res['invocation']['module_name'], res['invocation']['module_args'])
+            event_text += "$$$\n{0}\n$$$\n".format(msg)
+            module_name = 'module:{0}'.format(res['invocation']['module_name'])
         self.send_task_event(
             'Ansible task failed on "{0}"'.format(host),
             alert_type='error',
             text=event_text,
-            tags=['module:{0}'.format(res['invocation']['module_name'])],
+            tags=[module_name],
             host=host,
         )
 
     def runner_on_ok(self, host, res):
         # Only send an event when the task has changed on the host
         if res.get('changed'):
-            event_text = "$$$\n{0}[{1}]\n$$$\n".format(res['invocation']['module_name'], res['invocation']['module_args'])
+            # Handle missing invocation key and no_log: True tasks
+            module_name = ""
+            msg = res.get('msg')
+
+            if res.get('censored'):
+                event_text = res.get('censored')
+            elif not res.get('invocation'):
+                event_text = msg
+            else:
+                event_text = "$$$\n{0}[{1}]\n$$$\n".format(res['invocation']['module_name'], res['invocation']['module_args'])
+                module_name = 'module:{0}'.format(res['invocation']['module_name'])
             self.send_task_event(
                 'Ansible task changed on "{0}"'.format(host),
                 alert_type='success',
                 text=event_text,
-                tags=['module:{0}'.format(res['invocation']['module_name'])],
+                tags=[module_name],
                 host=host,
             )
 
