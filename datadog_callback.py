@@ -111,10 +111,12 @@ class CallbackModule(object):
         return "{0} {1}s".format(number, noun)
 
     ### Ansible callbacks ###
-    def runner_on_failed(self, host, res, ignore_errors=False):
-        # Handle missing invocation key and no_log: True tasks
-        module_name = ""
-        msg = res.get('msg')
+
+    # format helper for event_text
+    @staticmethod
+    def format_result(res):
+        msg = "$$$\n{0}\n$$$\n".format(res.get('msg'))
+        module_name = 'undefined'
 
         if res.get('censored'):
             event_text = res.get('censored')
@@ -122,8 +124,13 @@ class CallbackModule(object):
             event_text = msg
         else:
             event_text = "$$$\n{0}[{1}]\n$$$\n".format(res['invocation']['module_name'], res['invocation']['module_args'])
-            event_text += "$$$\n{0}\n$$$\n".format(msg)
+            event_text += msg
             module_name = 'module:{0}'.format(res['invocation']['module_name'])
+
+        return event_text, module_name
+
+    def runner_on_failed(self, host, res, ignore_errors=False):
+        event_text, module_name = self.format_result(res)
         self.send_task_event(
             'Ansible task failed on "{0}"'.format(host),
             alert_type='error',
@@ -135,17 +142,7 @@ class CallbackModule(object):
     def runner_on_ok(self, host, res):
         # Only send an event when the task has changed on the host
         if res.get('changed'):
-            # Handle missing invocation key and no_log: True tasks
-            module_name = ""
-            msg = res.get('msg')
-
-            if res.get('censored'):
-                event_text = res.get('censored')
-            elif not res.get('invocation'):
-                event_text = msg
-            else:
-                event_text = "$$$\n{0}[{1}]\n$$$\n".format(res['invocation']['module_name'], res['invocation']['module_args'])
-                module_name = 'module:{0}'.format(res['invocation']['module_name'])
+            event_text, module_name = self.format_result(res)
             self.send_task_event(
                 'Ansible task changed on "{0}"'.format(host),
                 alert_type='success',
