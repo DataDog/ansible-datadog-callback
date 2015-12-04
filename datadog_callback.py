@@ -110,27 +110,43 @@ class CallbackModule(object):
 
         return "{0} {1}s".format(number, noun)
 
+    # format helper for event_text
+    @staticmethod
+    def format_result(res):
+        msg = "$$$\n{0}\n$$$\n".format(res['msg']) if res.get('msg') else ""
+        module_name = 'undefined'
+
+        if res.get('censored'):
+            event_text = res.get('censored')
+        elif not res.get('invocation'):
+            event_text = msg
+        else:
+            event_text = "$$$\n{0}[{1}]\n$$$\n".format(res['invocation']['module_name'], res['invocation']['module_args'])
+            event_text += msg
+            module_name = 'module:{0}'.format(res['invocation']['module_name'])
+
+        return event_text, module_name
+
     ### Ansible callbacks ###
     def runner_on_failed(self, host, res, ignore_errors=False):
-        event_text = "$$$\n{0}[{1}]\n$$$\n".format(res['invocation']['module_name'], res['invocation']['module_args'])
-        event_text += "$$$\n{0}\n$$$\n".format(res['msg'])
+        event_text, module_name = self.format_result(res)
         self.send_task_event(
             'Ansible task failed on "{0}"'.format(host),
             alert_type='error',
             text=event_text,
-            tags=['module:{0}'.format(res['invocation']['module_name'])],
+            tags=[module_name],
             host=host,
         )
 
     def runner_on_ok(self, host, res):
         # Only send an event when the task has changed on the host
         if res.get('changed'):
-            event_text = "$$$\n{0}[{1}]\n$$$\n".format(res['invocation']['module_name'], res['invocation']['module_args'])
+            event_text, module_name = self.format_result(res)
             self.send_task_event(
                 'Ansible task changed on "{0}"'.format(host),
                 alert_type='success',
                 text=event_text,
-                tags=['module:{0}'.format(res['invocation']['module_name'])],
+                tags=[module_name],
                 host=host,
             )
 
