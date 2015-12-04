@@ -115,7 +115,7 @@ class CallbackModule(object):
     # format helper for event_text
     @staticmethod
     def format_result(res):
-        msg = "$$$\n{0}\n$$$\n".format(res.get('msg'))
+        msg = "$$$\n{0}\n$$$\n".format(res['msg']) if res.get('msg') else ""
         module_name = 'undefined'
 
         if res.get('censored'):
