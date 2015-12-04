@@ -110,8 +110,6 @@ class CallbackModule(object):
 
         return "{0} {1}s".format(number, noun)
 
-    ### Ansible callbacks ###
-
     # format helper for event_text
     @staticmethod
     def format_result(res):
@@ -129,6 +127,7 @@ class CallbackModule(object):
 
         return event_text, module_name
 
+    ### Ansible callbacks ###
     def runner_on_failed(self, host, res, ignore_errors=False):
         event_text, module_name = self.format_result(res)
         self.send_task_event(
