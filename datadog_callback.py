@@ -82,7 +82,7 @@ class CallbackModule(object):
             datadog.api.Metric.send(
                 metric="ansible.{0}".format(metric),
                 points=value,
-                tags=self.default_tags,
+                tags=tags,
                 host=host,
             )
         except Exception, e:
