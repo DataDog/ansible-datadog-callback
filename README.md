@@ -4,7 +4,7 @@ A callback to send Ansible events and metrics to Datadog.
 
 ## Requirements
 
-Ansible >=1.1,<2.0
+Ansible >=1.1
 
 The following python libraries are required on the Ansible server:
 

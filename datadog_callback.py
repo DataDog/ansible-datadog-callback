@@ -4,15 +4,28 @@ import time
 import datadog
 import yaml
 
+try:
+    from __main__ import cli
+except ImportError:
+    cli = None
 
-class CallbackModule(object):
+from ansible.plugins.callback import CallbackBase
+
+class CallbackModule(CallbackBase):
     def __init__(self):
+        if cli:
+            self._options = cli.options
+        else:
+            self._options = None
+
         # Read config and set up API client
         api_key, url = self._load_conf(os.path.join(os.path.dirname(__file__), "datadog_callback.yml"))
         datadog.initialize(api_key=api_key, api_host=url)
 
         self._playbook_name = None
         self._start_time = time.time()
+        self.playbook = None
+        self.play = None
 
     # Load parameters from conf file
     def _load_conf(self, file_path):
@@ -159,20 +172,23 @@ class CallbackModule(object):
             host=host,
         )
 
-    def playbook_on_start(self):
-        # Retrieve the playbook name from its filename
-        self._playbook_name, _ = os.path.splitext(
-            os.path.basename(self.playbook.filename))
+    def v2_playbook_on_start(self, playbook):
+        self.playbook = playbook
+        self._playbook_name = os.path.basename(self.playbook._file_name)
         self.start_timer()
-        host_list = self.playbook.inventory.host_list
-        inventory = os.path.basename(os.path.realpath(host_list))
+        inventory = os.path.basename(
+                os.path.realpath(self._options.inventory)
+        )
         self.send_playbook_event(
             'Ansible playbook "{0}" started by "{1}" against "{2}"'.format(
                 self._playbook_name,
-                self.playbook.remote_user,
+                self._options.remote_user,
                 inventory),
             event_type='start',
         )
+
+    def v2_playbook_on_play_start(self, play):
+        self.play = play
 
     def playbook_on_stats(self, stats):
         total_tasks = 0
@@ -227,3 +243,4 @@ class CallbackModule(object):
             text=event_text,
             event_type='end',
         )
+
