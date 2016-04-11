@@ -4,7 +4,7 @@ A callback to send Ansible events and metrics to Datadog.
 
 ## Requirements
 
-Ansible >=1.1,<2.0
+Ansible >=1.1
 
 The following python libraries are required on the Ansible server:
 
@@ -15,9 +15,11 @@ The following python libraries are required on the Ansible server:
 
 Once the required libraries (see above) have been installed on the server:
 
-1. Copy `datadog_callback.py` to your playbook callback directory (by default
-`callback_plugins/` in your playbook's root directory). Create the directory
-if it doesn't exist.
+1. If  using Ansible 1, copy `datadog_callback.py` to your playbook callback
+directory (by default `callback_plugins/` in your playbook's root directory).
+If using Ansible 2, copy `datadog_callback_ansible2.py` to your callback directory.
+Create the callback directory if it doesn't exist.
+
 2. Create a `datadog_callback.yml` file alongside `datadog_callback.py`,
 and set its contents with your [API key](https://app.datadoghq.com/account/settings#api),
 as following:
