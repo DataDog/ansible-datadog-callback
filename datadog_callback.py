@@ -1,11 +1,21 @@
+import getpass
 import os.path
 import time
 
 import datadog
 import yaml
 
+try:
+    # Ansible v2
+    from ansible.plugins.callback import CallbackBase
+    from __main__ import cli
+except ImportError:
+    # Ansible v1
+    CallbackBase = object
+    cli = None
 
-class CallbackModule(object):
+
+class CallbackModule(CallbackBase):
     def __init__(self):
         # Read config and set up API client
         api_key, url = self._load_conf(os.path.join(os.path.dirname(__file__), "datadog_callback.yml"))
@@ -13,6 +23,14 @@ class CallbackModule(object):
 
         self._playbook_name = None
         self._start_time = time.time()
+        self._options = None
+        if cli:
+            self._options = cli.options
+
+        # self.playbook is either set by Ansible (v1), or by us in the `playbook_start` callback method (v2)
+        self.playbook = None
+        # self.play is either set by Ansible (v1), or by us in the `playbook_on_play_start` callback method (v2)
+        self.play = None
 
     # Load parameters from conf file
     def _load_conf(self, file_path):
@@ -47,7 +65,6 @@ class CallbackModule(object):
 
     # Send event, aggregated with other task-level events from the same host
     def send_task_event(self, title, alert_type='info', text='', tags=None, host=None):
-        # self.play is set by ansible
         if getattr(self, 'play', None):
             if tags is None:
                 tags = []
@@ -98,6 +115,23 @@ class CallbackModule(object):
     def get_elapsed_time(self):
         return time.time() - self._start_time
 
+    # Handle `playbook_on_start` callback, common to Ansible v1 & v2
+    def _handle_playbook_on_start(self, playbook_file_name, inventory):
+        self.start_timer()
+
+        # Set the playbook name from its filename
+        self._playbook_name, _ = os.path.splitext(
+            os.path.basename(playbook_file_name))
+        inventory_name = os.path.basename(os.path.realpath(inventory))
+
+        self.send_playbook_event(
+            'Ansible playbook "{0}" started by "{1}" against "{2}"'.format(
+                self._playbook_name,
+                getpass.getuser(),
+                inventory_name),
+            event_type='start',
+        )
+
     # Default tags sent with events and metrics
     @property
     def default_tags(self):
@@ -121,7 +155,7 @@ class CallbackModule(object):
         elif not res.get('invocation'):
             event_text = msg
         else:
-            event_text = "$$$\n{0}[{1}]\n$$$\n".format(res['invocation']['module_name'], res['invocation']['module_args'])
+            event_text = "$$$\n{0}[{1}]\n$$$\n".format(res['invocation']['module_name'], res['invocation'].get('module_args', ''))
             event_text += msg
             module_name = 'module:{0}'.format(res['invocation']['module_name'])
 
@@ -159,20 +193,26 @@ class CallbackModule(object):
             host=host,
         )
 
+    # Implementation compatible with Ansible v1 only
     def playbook_on_start(self):
-        # Retrieve the playbook name from its filename
-        self._playbook_name, _ = os.path.splitext(
-            os.path.basename(self.playbook.filename))
-        self.start_timer()
-        host_list = self.playbook.inventory.host_list
-        inventory = os.path.basename(os.path.realpath(host_list))
-        self.send_playbook_event(
-            'Ansible playbook "{0}" started by "{1}" against "{2}"'.format(
-                self._playbook_name,
-                self.playbook.remote_user,
-                inventory),
-            event_type='start',
-        )
+        playbook_file_name = self.playbook.filename
+        inventory = self.playbook.inventory.host_list
+
+        self._handle_playbook_on_start(playbook_file_name, inventory)
+
+    # Implementation compatible with Ansible v2 only
+    def v2_playbook_on_start(self, playbook):
+        # On Ansible v2, Ansible doesn't set `self.playbook` automatically
+        self.playbook = playbook
+
+        playbook_file_name = self.playbook._file_name
+        inventory = self._options.inventory
+
+        self._handle_playbook_on_start(playbook_file_name, inventory)
+
+    def v2_playbook_on_play_start(self, play):
+        # On Ansible v2, Ansible doesn't set `self.play` automatically
+        self.play = play
 
     def playbook_on_stats(self, stats):
         total_tasks = 0
