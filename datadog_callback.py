@@ -155,9 +155,15 @@ class CallbackModule(CallbackBase):
         elif not res.get('invocation'):
             event_text = msg
         else:
-            event_text = "$$$\n{0}[{1}]\n$$$\n".format(res['invocation']['module_name'], res['invocation'].get('module_args', ''))
+            invocation = res['invocation']
+            event_text = "$$$\n{0}[{1}]\n$$$\n".format(invocation['module_name'], invocation.get('module_args', ''))
             event_text += msg
-            module_name = 'module:{0}'.format(res['invocation']['module_name'])
+            module_name = 'module:{0}'.format(invocation['module_name'])
+            if 'module_stdout' in res:
+                # On Ansible v2, details on internal failures of modules are not reported in the `msg`,
+                # so we have to extract the info differently
+                event_text += "$$$\n{0}\n{1}\n$$$\n".format(
+                    res.get('module_stdout', ''), res.get('module_stderr', ''))
 
         return event_text, module_name
 
