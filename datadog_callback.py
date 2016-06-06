@@ -156,37 +156,39 @@ class CallbackModule(CallbackBase):
             event_text = msg
         else:
             invocation = res['invocation']
-            event_text = "$$$\n{0}[{1}]\n$$$\n".format(invocation['module_name'], invocation.get('module_args', ''))
+            module_name = invocation.get('module_name', 'undefined')
+            event_text = "$$$\n{0}[{1}]\n$$$\n".format(module_name, invocation.get('module_args', ''))
             event_text += msg
-            module_name = 'module:{0}'.format(invocation['module_name'])
             if 'module_stdout' in res:
                 # On Ansible v2, details on internal failures of modules are not reported in the `msg`,
                 # so we have to extract the info differently
                 event_text += "$$$\n{0}\n{1}\n$$$\n".format(
                     res.get('module_stdout', ''), res.get('module_stderr', ''))
 
-        return event_text, module_name
+        module_name_tag = 'module:{0}'.format(module_name)
+
+        return event_text, module_name_tag
 
     ### Ansible callbacks ###
     def runner_on_failed(self, host, res, ignore_errors=False):
-        event_text, module_name = self.format_result(res)
+        event_text, module_name_tag = self.format_result(res)
         self.send_task_event(
             'Ansible task failed on "{0}"'.format(host),
             alert_type='error',
             text=event_text,
-            tags=[module_name],
+            tags=[module_name_tag],
             host=host,
         )
 
     def runner_on_ok(self, host, res):
         # Only send an event when the task has changed on the host
         if res.get('changed'):
-            event_text, module_name = self.format_result(res)
+            event_text, module_name_tag = self.format_result(res)
             self.send_task_event(
                 'Ansible task changed on "{0}"'.format(host),
                 alert_type='success',
                 text=event_text,
-                tags=[module_name],
+                tags=[module_name_tag],
                 host=host,
             )
 
