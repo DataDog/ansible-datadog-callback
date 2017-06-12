@@ -1,5 +1,6 @@
 import getpass
 import os.path
+import logging
 import time
 
 try:
@@ -21,6 +22,9 @@ class CallbackModule(CallbackBase):
             print 'Datadog callback disabled.\nMake sure you call all required libraries: "datadog" and "yaml".'
         else:
             self.disabled = False
+            # Set logger level - datadog api and urllib3
+            for log_name in ['requests.packages.urllib3', 'datadog.api']:
+                self._set_logger_level(log_name)
 
         self._playbook_name = None
         self._start_time = time.time()
@@ -32,6 +36,17 @@ class CallbackModule(CallbackBase):
         self.playbook = None
         # self.play is set in the `playbook_on_play_start` callback method
         self.play = None
+
+    # Set logger level
+    def _set_logger_level(self, name, level=logging.WARNING):
+        try:
+            log = logging.getLogger(name)
+            log.setLevel(level)
+            log.propagate = False
+        except Exception, e:
+            # We don't want Ansible to fail on an API error
+            print 'Couldn\'t get logger - %s' % name
+            print e
 
     # Load parameters from conf file
     def _load_conf(self, file_path):
