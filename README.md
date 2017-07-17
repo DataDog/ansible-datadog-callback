@@ -25,6 +25,17 @@ as following:
 ```
 api_key: <your-api-key>
 ```
+alternatively (when using Ansible >=2.0) add:
+```
+datadog_api_key: <your-api-key>
+```
+to hostvars (preferably in the vault file) of the host ansible is being run from.
+
+3. Be sure to whitelist the plugin in your ansible.cfg
+```
+[defaults]
+callback_whitelist = datadog_callback
+```
 
 You should start seeing Ansible events and metrics appear on Datadog when your playbook is run.
 
