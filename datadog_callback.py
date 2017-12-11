@@ -122,7 +122,11 @@ class CallbackModule(CallbackBase):
         # Set the playbook name from its filename
         self._playbook_name, _ = os.path.splitext(
             os.path.basename(playbook_file_name))
-        inventory_name = os.path.basename(os.path.realpath(inventory))
+
+        # inventory is a comma separated host list: ["host1,host2","host3,host4,"]
+        if isinstance(inventory, basestring):
+            inventory = inventory.split(',')
+        inventory_name = ','.join([os.path.basename(os.path.realpath(name)) for name in inventory if name])
 
         self.send_playbook_event(
             'Ansible playbook "{0}" started by "{1}" against "{2}"'.format(
