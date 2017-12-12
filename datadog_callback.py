@@ -222,12 +222,17 @@ class CallbackModule(CallbackBase):
         api_key, url = self._load_conf(os.path.join(os.path.dirname(__file__), "datadog_callback.yml"))
         # If there is no api key defined in config file, try to get it from hostvars
         if api_key == '':
+            hostvars = self.play.get_variable_manager()._hostvars
 
-            try:
-                api_key = self.play.get_variable_manager()._hostvars['localhost']['datadog_api_key']
-            except Exception, e:
-                print '{0} is not set neither in the config file nor hostvars. Disabling Datadog callback plugin'.format(e)
+            if not hostvars:
+                print "No api_key found in the config file and hostvars aren't set: disabling Datadog callback plugin"
                 self.disabled = True
+            else:
+                try:
+                    api_key = hostvars['localhost']['datadog_api_key']
+                except Exception, e:
+                    print '{0} is not set neither in the config file nor hostvars: disabling Datadog callback plugin'.format(e)
+                    self.disabled = True
 
         # Set up API client and send a start event
         if not self.disabled:
