@@ -25,11 +25,11 @@ as following:
 ```
 api_key: <your-api-key>
 ```
-alternatively (when using Ansible >=2.0) add:
+
+alternatively you can use the hostvars of the host ansible is being run from (preferably in the vault file):
 ```
 datadog_api_key: <your-api-key>
 ```
-to hostvars (preferably in the vault file) of the host ansible is being run from.
 
 3. Be sure to whitelist the plugin in your ansible.cfg
 ```
