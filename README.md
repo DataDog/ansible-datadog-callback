@@ -4,12 +4,15 @@ A callback to send Ansible events and metrics to Datadog.
 
 ## Requirements
 
-Ansible >=1.1
+Ansible >=2.0
 
 The following python libraries are required on the Ansible server:
 
 - [`datadogpy`](https://github.com/DataDog/datadogpy/)
 - `pyyaml` (install with `pip install pyyaml`)
+
+Ansible <=1.9 is no longer supported by this callback. The latest compatible
+version is tagged with `1.0.2`.
 
 ## Installation
 
