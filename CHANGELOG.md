@@ -3,6 +3,7 @@ CHANGELOG
 
 # 2.0.0 / 2017-12-12
 - [FEATURE] Add support for getting api_key from hostvars and thus from vault. See [#25][]
+- [BREAKING CHANGE] Drop support for ansible <2.0
 
 # 1.0.2 / 2017-12-11
 * [BUGFIX] Avoid failure when using ansible 2.4. See [#27][]

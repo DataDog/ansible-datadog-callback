@@ -5,14 +5,8 @@ import time
 import datadog
 import yaml
 
-try:
-    # Ansible v2
-    from ansible.plugins.callback import CallbackBase
-    from __main__ import cli
-except ImportError:
-    # Ansible v1
-    CallbackBase = object
-    cli = None
+from ansible.plugins.callback import CallbackBase
+from __main__ import cli
 
 
 class CallbackModule(CallbackBase):
@@ -24,16 +18,16 @@ class CallbackModule(CallbackBase):
         if cli:
             self._options = cli.options
 
-        # self.playbook is either set by Ansible (v1), or by us in the `playbook_start` callback method (v2)
+        # self.playbook is set in the `v2_playbook_on_start` callback method
         self.playbook = None
-        # self.play is either set by Ansible (v1), or by us in the `playbook_on_play_start` callback method (v2)
+        # self.play is set in the `playbook_on_play_start` callback method
         self.play = None
 
     # Load parameters from conf file
     def _load_conf(self, file_path):
         conf_dict = {}
 
-	if os.path.isfile(file_path):
+        if os.path.isfile(file_path):
             with open(file_path, 'r') as conf_file:
                 conf_dict = yaml.load(conf_file)
 
@@ -114,19 +108,6 @@ class CallbackModule(CallbackBase):
     def get_elapsed_time(self):
         return time.time() - self._start_time
 
-    # Handle `playbook_on_start` callback, common to Ansible v1 & v2
-    def _handle_playbook_on_start(self, playbook_file_name, inventory):
-        self.start_timer()
-
-        # Set the playbook name from its filename
-        self._playbook_name, _ = os.path.splitext(
-            os.path.basename(playbook_file_name))
-
-        # inventory is a comma separated host list: ["host1,host2","host3,host4,"]
-        if isinstance(inventory, basestring):
-            inventory = inventory.split(',')
-        self._inventory_name = ','.join([os.path.basename(os.path.realpath(name)) for name in inventory if name])
-
     # Default tags sent with events and metrics
     @property
     def default_tags(self):
@@ -196,13 +177,6 @@ class CallbackModule(CallbackBase):
             host=host,
         )
 
-    # Implementation compatible with Ansible v1 only
-    def playbook_on_start(self):
-        playbook_file_name = self.playbook.filename
-        inventory = self.playbook.inventory.host_list
-
-        self._handle_playbook_on_start(playbook_file_name, inventory)
-
     # Implementation compatible with Ansible v2 only
     def v2_playbook_on_start(self, playbook):
         # On Ansible v2, Ansible doesn't set `self.playbook` automatically
@@ -211,7 +185,14 @@ class CallbackModule(CallbackBase):
         playbook_file_name = self.playbook._file_name
         inventory = self._options.inventory
 
-        self._handle_playbook_on_start(playbook_file_name, inventory)
+        self.start_timer()
+
+        # Set the playbook name from its filename
+        self._playbook_name, _ = os.path.splitext(
+            os.path.basename(playbook_file_name))
+        if isinstance(inventory, list):
+            inventory = ','.join(inventory)
+        self._inventory_name = ','.join([os.path.basename(os.path.realpath(name)) for name in inventory.split(',') if name])
 
     def v2_playbook_on_play_start(self, play):
         # On Ansible v2, Ansible doesn't set `self.play` automatically
@@ -239,7 +220,8 @@ class CallbackModule(CallbackBase):
             datadog.initialize(api_key=api_key, api_host=url)
 
             self.send_playbook_event(
-                'Ansible playbook "{0}" started by "{1}" against "{2}"'.format(
+                'Ansible play "{0}" started in playbook "{1}" by "{2}" against "{3}"'.format(
+                    self.play.name,
                     self._playbook_name,
                     getpass.getuser(),
                     self._inventory_name),
