@@ -18,7 +18,9 @@ class CallbackModule(CallbackBase):
     def __init__(self):
         if not HAS_MODULES:
             self.disabled = True
-            print 'Datadog callback disabled.\nMake sure you call all required libraries.'
+            print 'Datadog callback disabled.\nMake sure you call all required libraries: "datadog" and "yaml".'
+        else:
+            self.disabled = False
 
         self._playbook_name = None
         self._start_time = time.time()
