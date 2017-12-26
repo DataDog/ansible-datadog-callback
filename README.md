@@ -29,7 +29,15 @@ as following:
 api_key: <your-api-key>
 ```
 
-alternatively you can use the hostvars of the host ansible is being run from (preferably in the vault file):
+You can specify a custom location for the configuration file using the
+`ANSIBLE_DATADOG_CALLBACK_CONF_FILE` environment file.
+
+For exemple:
+```
+ANSIBLE_DATADOG_CALLBACK_CONF_FILE=/etc/datadog/callback_conf.yaml ansible-playbook ...
+```
+
+Alternatively you can use the hostvars of the host ansible is being run from (preferably in the vault file):
 ```
 datadog_api_key: <your-api-key>
 ```
