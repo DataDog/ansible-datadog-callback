@@ -1,6 +1,9 @@
 CHANGELOG
 =========
 
+# 2.1.0 / 2017-12-26
+- [FEATURE] Disable callback if required python packages aren't installed. See [#28][] (thanks to @dobber)
+
 # 2.0.0 / 2017-12-12
 - [FEATURE] Add support for getting api_key from hostvars and thus from vault. See [#25][]
 - [BREAKING CHANGE] Drop support for ansible <2.0
