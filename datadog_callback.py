@@ -1,6 +1,6 @@
 import getpass
-import os.path
 import logging
+import os
 import time
 
 try:
@@ -49,12 +49,15 @@ class CallbackModule(CallbackBase):
             print e
 
     # Load parameters from conf file
-    def _load_conf(self, file_path):
-        conf_dict = {}
+    def _load_conf(self):
+        file_path = os.environ.get('ANSIBLE_DATADOG_CALLBACK_CONF_FILE', os.path.join(os.path.dirname(__file__), "datadog_callback.yml"))
 
+        conf_dict = {}
         if os.path.isfile(file_path):
             with open(file_path, 'r') as conf_file:
                 conf_dict = yaml.load(conf_file)
+        else:
+            print "Could not load configuration, invalid file: {}".format(file_path)
 
         return conf_dict.get('api_key', ''), conf_dict.get('url', 'https://app.datadoghq.com')
 
@@ -226,7 +229,7 @@ class CallbackModule(CallbackBase):
             return
 
         # Read config and hostvars
-        api_key, url = self._load_conf(os.path.join(os.path.dirname(__file__), "datadog_callback.yml"))
+        api_key, url = self._load_conf()
         # If there is no api key defined in config file, try to get it from hostvars
         if api_key == '':
             hostvars = self.play.get_variable_manager()._hostvars
@@ -238,7 +241,7 @@ class CallbackModule(CallbackBase):
                 try:
                     api_key = hostvars['localhost']['datadog_api_key']
                 except Exception, e:
-                    print '{0} is not set neither in the config file nor hostvars: disabling Datadog callback plugin'.format(e)
+                    print 'No "api_key" found in the config file and {0} is not set in the hostvars: disabling Datadog callback plugin'.format(e)
                     self.disabled = True
 
         # Set up API client and send a start event
