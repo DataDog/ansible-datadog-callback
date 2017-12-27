@@ -59,7 +59,7 @@ class CallbackModule(CallbackBase):
         else:
             print "Could not load configuration, invalid file: {}".format(file_path)
 
-        return conf_dict.get('api_key', os.environ.get('DATADOG_API_KEY', '')), conf_dict.get('url', 'https://app.datadoghq.com')
+        return os.environ.get('DATADOG_API_KEY', conf_dict.get('api_key', '')), conf_dict.get('url', 'https://app.datadoghq.com')
 
 
     # Send event to Datadog
