@@ -21,7 +21,16 @@ Once the required libraries (see above) have been installed on the server:
 1. Copy `datadog_callback.py` to your playbook callback directory (by default
 `callback_plugins/` in your playbook's root directory). Create the directory
 if it doesn't exist.
-2. Create a `datadog_callback.yml` file alongside `datadog_callback.py`,
+2. You have 3 ways to set your API key. The callback will first use the
+   environment variable, then the configuration file, then hostvars/vault.
+
+##### Using environment variable
+
+Set the environment variable `DATADOG_API_KEY`.
+
+##### Using a yaml file
+
+Create a `datadog_callback.yml` file alongside `datadog_callback.py`,
 and set its contents with your [API key](https://app.datadoghq.com/account/settings#api),
 as following:
 
@@ -36,6 +45,8 @@ For exemple:
 ```
 ANSIBLE_DATADOG_CALLBACK_CONF_FILE=/etc/datadog/callback_conf.yaml ansible-playbook ...
 ```
+
+##### Using ansible hostvars and vault
 
 Alternatively you can use the hostvars of the host ansible is being run from (preferably in the vault file):
 ```

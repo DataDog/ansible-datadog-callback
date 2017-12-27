@@ -4,6 +4,7 @@ CHANGELOG
 # 2.2.0 / 2017-12-27
 - [FEATURE] Set log level to warning for the datadog and request packages. See [#24][] (thanks to @n0ts)
 - [FEATURE] Allow users to set a custom location for the configuration file.
+- [FEATURE] Added environment variables for configuring datadog api key. See [#22][] (thanks to @pyconsult)
 
 # 2.1.0 / 2017-12-26
 - [FEATURE] Disable callback if required python packages aren't installed. See [#28][] (thanks to @dobber)
