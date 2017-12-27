@@ -1,6 +1,9 @@
 CHANGELOG
 =========
 
+# 2.2.0 / 2017-12-27
+- [FEATURE] Set log level to warning for the datadog and request packages. See [#24][] (thanks to @n0ts)
+
 # 2.1.0 / 2017-12-26
 - [FEATURE] Disable callback if required python packages aren't installed. See [#28][] (thanks to @dobber)
 
