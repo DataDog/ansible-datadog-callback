@@ -176,6 +176,10 @@ class CallbackModule(CallbackBase):
 
     ### Ansible callbacks ###
     def runner_on_failed(self, host, res, ignore_errors=False):
+        # don't post anything if user asked to ignore errors
+        if ignore_errors:
+            return
+
         event_text, module_name_tag = self.format_result(res)
         self.send_task_event(
             'Ansible task failed on "{0}"'.format(host),
