@@ -1,6 +1,9 @@
 CHANGELOG
 =========
 
+# 2.3.0 / 2018-01-12
+- [FEATURE] Don't send event about error when "ignore_errors" is True. See [#30][]
+
 # 2.2.0 / 2017-12-27
 - [FEATURE] Set log level to warning for the datadog and request packages. See [#24][] (thanks to @n0ts)
 - [FEATURE] Allow users to set a custom location for the configuration file.
