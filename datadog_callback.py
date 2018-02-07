@@ -19,7 +19,7 @@ class CallbackModule(CallbackBase):
     def __init__(self):
         if not HAS_MODULES:
             self.disabled = True
-            print 'Datadog callback disabled.\nMake sure you call all required libraries: "datadog" and "yaml".'
+            print('Datadog callback disabled.\nMake sure you call all required libraries: "datadog" and "yaml".')
         else:
             self.disabled = False
             # Set logger level - datadog api and urllib3
@@ -43,10 +43,10 @@ class CallbackModule(CallbackBase):
             log = logging.getLogger(name)
             log.setLevel(level)
             log.propagate = False
-        except Exception, e:
+        except Exception as e:
             # We don't want Ansible to fail on an API error
-            print 'Couldn\'t get logger - %s' % name
-            print e
+            print("Couldn't get logger - %s" % name)
+            print(e)
 
     # Load parameters from conf file
     def _load_conf(self):
@@ -57,7 +57,7 @@ class CallbackModule(CallbackBase):
             with open(file_path, 'r') as conf_file:
                 conf_dict = yaml.load(conf_file)
         else:
-            print "Could not load configuration, invalid file: {}".format(file_path)
+            print("Could not load configuration, invalid file: {}".format(file_path))
 
         return os.environ.get('DATADOG_API_KEY', conf_dict.get('api_key', '')), conf_dict.get('url', 'https://app.datadoghq.com')
 
@@ -80,10 +80,10 @@ class CallbackModule(CallbackBase):
                 event_type=event_type,
                 event_object=event_object,
             )
-        except Exception, e:
+        except Exception as e:
             # We don't want Ansible to fail on an API error
-            print 'Couldn\'t send event "{0}" to Datadog'.format(title)
-            print e
+            print('Couldn\'t send event "{0}" to Datadog'.format(title))
+            print(e)
 
     # Send event, aggregated with other task-level events from the same host
     def send_task_event(self, title, alert_type='info', text='', tags=None, host=None):
@@ -124,10 +124,10 @@ class CallbackModule(CallbackBase):
                 tags=tags,
                 host=host,
             )
-        except Exception, e:
+        except Exception as e:
             # We don't want Ansible to fail on an API error
-            print 'Couldn\'t send metric "{0}" to Datadog'.format(metric)
-            print e
+            print('Couldn\'t send metric "{0}" to Datadog'.format(metric))
+            print(e)
 
     # Start timer to measure playbook running time
     def start_timer(self):
@@ -240,13 +240,13 @@ class CallbackModule(CallbackBase):
             hostvars = self.play.get_variable_manager()._hostvars
 
             if not hostvars:
-                print "No api_key found in the config file and hostvars aren't set: disabling Datadog callback plugin"
+                print("No api_key found in the config file and hostvars aren't set: disabling Datadog callback plugin")
                 self.disabled = True
             else:
                 try:
                     api_key = hostvars['localhost']['datadog_api_key']
-                except Exception, e:
-                    print 'No "api_key" found in the config file and {0} is not set in the hostvars: disabling Datadog callback plugin'.format(e)
+                except Exception as e:
+                    print('No "api_key" found in the config file and {0} is not set in the hostvars: disabling Datadog callback plugin'.format(e))
                     self.disabled = True
 
         # Set up API client and send a start event
@@ -278,7 +278,7 @@ class CallbackModule(CallbackBase):
                 total_errors += errors
 
             # Send metrics for this host
-            for metric, value in summary.iteritems():
+            for metric, value in summary.items():
                 self.send_metric('task.{0}'.format(metric), value, host=host)
 
         # Send playbook elapsed time
