@@ -49,18 +49,13 @@ class CallbackModule(CallbackBase):
             print(e)
 
     # Load parameters from conf file
-    def _load_conf(self):
-        file_path = os.environ.get('ANSIBLE_DATADOG_CALLBACK_CONF_FILE', os.path.join(os.path.dirname(__file__), "datadog_callback.yml"))
-
+    def _load_conf(self, file_path):
         conf_dict = {}
         if os.path.isfile(file_path):
             with open(file_path, 'r') as conf_file:
                 conf_dict = yaml.load(conf_file)
-        else:
-            print("Could not load configuration, invalid file: {}".format(file_path))
 
         return os.environ.get('DATADOG_API_KEY', conf_dict.get('api_key', '')), conf_dict.get('url', 'https://app.datadoghq.com')
-
 
     # Send event to Datadog
     def _send_event(self, title, alert_type=None, text=None, tags=None, host=None, event_type=None, event_object=None):
@@ -234,19 +229,21 @@ class CallbackModule(CallbackBase):
             return
 
         # Read config and hostvars
-        api_key, url = self._load_conf()
+        config_path = os.environ.get('ANSIBLE_DATADOG_CALLBACK_CONF_FILE', os.path.join(os.path.dirname(__file__), "datadog_callback.yml"))
+        api_key, url = self._load_conf(config_path)
+
         # If there is no api key defined in config file, try to get it from hostvars
         if api_key == '':
             hostvars = self.play.get_variable_manager()._hostvars
 
             if not hostvars:
-                print("No api_key found in the config file and hostvars aren't set: disabling Datadog callback plugin")
+                print("No api_key found in the config file ({0}) and hostvars aren't set: disabling Datadog callback plugin".format(config_path))
                 self.disabled = True
             else:
                 try:
                     api_key = hostvars['localhost']['datadog_api_key']
                 except Exception as e:
-                    print('No "api_key" found in the config file and {0} is not set in the hostvars: disabling Datadog callback plugin'.format(e))
+                    print('No "api_key" found in the config file ({0}) and "datadog_api_key" is not set in the hostvars: disabling Datadog callback plugin'.format(config_path))
                     self.disabled = True
 
         # Set up API client and send a start event

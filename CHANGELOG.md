@@ -1,6 +1,9 @@
 CHANGELOG
 =========
 
+# 2.4.1 / 2018-02-07
+- [BUGFIX] Avoid printing error about the conf file when using a vault. See [#34][]
+
 # 2.4.0 / 2018-02-07
 - [FEATURE] Add support of python3 (and still fully support python2). See [#33][] (thanks to [@DSpeichert][])
 
