@@ -10,9 +10,11 @@ try:
 except ImportError:
     HAS_MODULES = False
 
-
 from ansible.plugins.callback import CallbackBase
-from __main__ import cli
+try:
+    from __main__ import cli
+except ImportError:
+    cli = False
 
 
 class CallbackModule(CallbackBase):
@@ -20,6 +22,9 @@ class CallbackModule(CallbackBase):
         if not HAS_MODULES:
             self.disabled = True
             print('Datadog callback disabled.\nMake sure you call all required libraries: "datadog" and "yaml".')
+        elif cli and cli.options.check:
+            self.disabled = True
+            print ('Datadog callback disabled in "check mode".  ')
         else:
             self.disabled = False
             # Set logger level - datadog api and urllib3
@@ -209,6 +214,7 @@ class CallbackModule(CallbackBase):
     def v2_playbook_on_start(self, playbook):
         # On Ansible v2, Ansible doesn't set `self.playbook` automatically
         self.playbook = playbook
+
 
         playbook_file_name = self.playbook._file_name
         inventory = self._options.inventory
