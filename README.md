@@ -41,7 +41,7 @@ api_key: <your-api-key>
 You can specify a custom location for the configuration file using the
 `ANSIBLE_DATADOG_CALLBACK_CONF_FILE` environment file.
 
-For exemple:
+For example:
 ```
 ANSIBLE_DATADOG_CALLBACK_CONF_FILE=/etc/datadog/callback_conf.yaml ansible-playbook ...
 ```
