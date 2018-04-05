@@ -19,7 +19,7 @@ class CallbackModule(CallbackBase):
     def __init__(self):
         if not HAS_MODULES:
             self.disabled = True
-            print('Datadog callback disabled.\nMake sure you call all required libraries: "datadog" and "yaml".')
+            print('Datadog callback disabled: missing "datadog" and/or "yaml" python package.')
         else:
             self.disabled = False
             # Set logger level - datadog api and urllib3
