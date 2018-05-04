@@ -241,7 +241,14 @@ class CallbackModule(CallbackBase):
                 self.disabled = True
             else:
                 try:
-                    api_key = hostvars['localhost']['datadog_api_key']
+                    found_hostvars_datadog_api_key = False
+                    for host in hostvars.keys():
+                        if 'datadog_api_key' in  hostvars[host]:
+                            api_key = hostvars[host]['datadog_api_key']
+                            found_hostvars_datadog_api_key = True
+                            break
+                    if not found_hostvars_datadog_api_key:
+                        api_key = hostvars['localhost']['host_datadog_api_key']
                 except Exception as e:
                     print('No "api_key" found in the config file ({0}) and "datadog_api_key" is not set in the hostvars: disabling Datadog callback plugin'.format(config_path))
                     self.disabled = True
