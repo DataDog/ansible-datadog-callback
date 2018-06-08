@@ -1,6 +1,9 @@
 CHANGELOG
 =========
 
+# 2.4.2 / 2018-06-08
+- [BUGFIX] Fix yaml import broken by Ansible 2.5.
+
 # 2.4.1 / 2018-02-07
 - [BUGFIX] Avoid printing error about the conf file when using a vault. See [#34][]
 
