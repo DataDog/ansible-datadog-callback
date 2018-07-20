@@ -14,6 +14,9 @@ except ImportError:
 
 
 from ansible.plugins.callback import CallbackBase
+from ansible.template import Templar
+from ansible.plugins.strategy import SharedPluginLoaderObj
+
 from __main__ import cli
 
 
@@ -242,8 +245,12 @@ class CallbackModule(CallbackBase):
                 print("No api_key found in the config file ({0}) and hostvars aren't set: disabling Datadog callback plugin".format(config_path))
                 self.disabled = True
             else:
+                templar = Templar(loader=self.playbook.get_loader(),
+                                  shared_loader_obj=SharedPluginLoaderObj(),
+                                  variables=hostvars['localhost'])
+
                 try:
-                    api_key = hostvars['localhost']['datadog_api_key']
+                    api_key = templar.template(hostvars['localhost']['datadog_api_key'])
                 except Exception as e:
                     print('No "api_key" found in the config file ({0}) and "datadog_api_key" is not set in the hostvars: disabling Datadog callback plugin'.format(config_path))
                     self.disabled = True
