@@ -16,6 +16,7 @@ except ImportError:
 from ansible.plugins.callback import CallbackBase
 from __main__ import cli
 
+DEFAULT_DD_URL = "https://api.datadoghq.com"
 
 class CallbackModule(CallbackBase):
     def __init__(self):
@@ -57,7 +58,10 @@ class CallbackModule(CallbackBase):
             with open(file_path, 'r') as conf_file:
                 conf_dict = yaml.load(conf_file)
 
-        return os.environ.get('DATADOG_API_KEY', conf_dict.get('api_key', '')), conf_dict.get('url', 'https://app.datadoghq.com')
+        api_key = os.environ.get('DATADOG_API_KEY', conf_dict.get('api_key', ''))
+        dd_url = os.environ.get('DATADOG_URL', conf_dict.get('url', ''))
+        dd_site = os.environ.get('DATADOG_SITE', conf_dict.get('site', ''))
+        return api_key, dd_url, dd_site
 
     # Send event to Datadog
     def _send_event(self, title, alert_type=None, text=None, tags=None, host=None, event_type=None, event_object=None):
@@ -232,7 +236,7 @@ class CallbackModule(CallbackBase):
 
         # Read config and hostvars
         config_path = os.environ.get('ANSIBLE_DATADOG_CALLBACK_CONF_FILE', os.path.join(os.path.dirname(__file__), "datadog_callback.yml"))
-        api_key, url = self._load_conf(config_path)
+        api_key, dd_url, dd_site = self._load_conf(config_path)
 
         # If there is no api key defined in config file, try to get it from hostvars
         if api_key == '':
@@ -244,13 +248,23 @@ class CallbackModule(CallbackBase):
             else:
                 try:
                     api_key = hostvars['localhost']['datadog_api_key']
+                    if not dd_url:
+                        dd_url = hostvars['localhost'].get('datadog_url')
+                    if not dd_site:
+                        dd_site = hostvars['localhost'].get('datadog_site')
                 except Exception as e:
                     print('No "api_key" found in the config file ({0}) and "datadog_api_key" is not set in the hostvars: disabling Datadog callback plugin'.format(config_path))
                     self.disabled = True
 
+        if not dd_url:
+            if dd_site:
+                dd_url = "https://api."+ dd_site
+            else:
+                dd_url = DEFAULT_DD_URL # default to Datadog US
+
         # Set up API client and send a start event
         if not self.disabled:
-            datadog.initialize(api_key=api_key, api_host=url)
+            datadog.initialize(api_key=api_key, api_host=dd_url)
 
             self.send_playbook_event(
                 'Ansible play "{0}" started in playbook "{1}" by "{2}" against "{3}"'.format(

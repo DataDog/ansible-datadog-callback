@@ -1,6 +1,9 @@
 CHANGELOG
 =========
 
+# 2.5.0 / 2019-02-07
+* [FEATURE] Add support for "site" configuration.
+
 # 2.4.2 / 2018-06-08
 - [BUGFIX] Fix yaml import broken by Ansible 2.5.
 
