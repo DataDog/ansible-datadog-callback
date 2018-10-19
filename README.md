@@ -28,6 +28,12 @@ if it doesn't exist.
 
 Set the environment variable `DATADOG_API_KEY`.
 
+Optionally to send data to Datadog EU, you can set the environment
+variable `DATADOG_SITE=datadoghq.eu`.
+
+To send data to a custom URL you can set the environment
+variable `DATADOG_URL=<custom URL>`.
+
 ##### Using a yaml file
 
 Create a `datadog_callback.yml` file alongside `datadog_callback.py`,
@@ -36,6 +42,11 @@ as following:
 
 ```
 api_key: <your-api-key>
+
+# optionally to send data to Datadog EU add the following setting
+site: datadoghq.eu
+# optionally to send data to a custom URL add the following setting
+url: <custom URl>
 ```
 
 You can specify a custom location for the configuration file using the
@@ -51,6 +62,12 @@ ANSIBLE_DATADOG_CALLBACK_CONF_FILE=/etc/datadog/callback_conf.yaml ansible-playb
 Alternatively you can use the hostvars of the host ansible is being run from (preferably in the vault file):
 ```
 datadog_api_key: <your-api-key>
+
+# Optionally to send data to Datadog EU add the following setting
+datadog_site: datadoghq.eu
+
+# Optionally to send data to a custom URL add the following setting
+datadog_url: <custom URL>
 ```
 
 3. Be sure to whitelist the plugin in your ansible.cfg
