@@ -68,6 +68,7 @@ class CallbackModule(CallbackBase):
         if tags is None:
             tags = []
         tags.extend(self.default_tags)
+        tags.extend(self.user_tags)
         priority = 'normal' if alert_type == 'error' else 'low'
         try:
             datadog.api.Event.create(
@@ -118,6 +119,7 @@ class CallbackModule(CallbackBase):
         if tags is None:
             tags = []
         tags.extend(self.default_tags)
+        tags.extend(self.user_tags)
         try:
             datadog.api.Metric.send(
                 metric="ansible.{0}".format(metric),
@@ -142,6 +144,12 @@ class CallbackModule(CallbackBase):
     @property
     def default_tags(self):
         return ['playbook:{0}'.format(self._playbook_name)]
+
+    # Tags defined by user via hostvars
+    @property
+    def user_tags(self):
+        hostvars = self.play.get_variable_manager()._hostvars
+        return hostvars['localhost'].get('datadog_tags', [])
 
     @staticmethod
     def pluralize(number, noun):
