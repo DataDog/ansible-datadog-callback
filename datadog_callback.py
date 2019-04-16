@@ -24,6 +24,7 @@ class CallbackModule(CallbackBase):
             self.disabled = True
             print('Datadog callback disabled: missing "datadog" and/or "yaml" python package.')
         else:
+            print("[Datadog Callback]: python module 'datadog' and 'yaml' where successfully imported")
             self.disabled = False
             # Set logger level - datadog api and urllib3
             for log_name in ['requests.packages.urllib3', 'datadog.api']:
@@ -56,7 +57,13 @@ class CallbackModule(CallbackBase):
         conf_dict = {}
         if os.path.isfile(file_path):
             with open(file_path, 'r') as conf_file:
-                conf_dict = yaml.load(conf_file)
+                conf_dict = yaml.safe_load(conf_file)
+        elif file_path:
+            print("[Datadog Callback] config_path '%s': is not a file, ignoring" % file_path)
+
+        print("[Datadog Callback] is 'DATADOG_API_KEY' set in the env: %s" % ('DATADOG_API_KEY' in os.environ))
+        print("[Datadog Callback] is 'DATADOG_URL' set in the env: %s" % ('DATADOG_URL' in os.environ))
+        print("[Datadog Callback] is 'DATADOG_SITE' set in the env: %s" % ('DATADOG_SITE' in os.environ))
 
         api_key = os.environ.get('DATADOG_API_KEY', conf_dict.get('api_key', ''))
         dd_url = os.environ.get('DATADOG_URL', conf_dict.get('url', ''))
@@ -219,6 +226,8 @@ class CallbackModule(CallbackBase):
         playbook_file_name = self.playbook._file_name
         inventory = self._options.inventory
 
+        print("[Datadog Callback] playbook start detected: %s" % playbook_file_name)
+
         self.start_timer()
 
         # Set the playbook name from its filename
@@ -231,22 +240,37 @@ class CallbackModule(CallbackBase):
     def v2_playbook_on_play_start(self, play):
         # On Ansible v2, Ansible doesn't set `self.play` automatically
         self.play = play
+
+        print("[Datadog Callback] playbook play start detected")
         if self.disabled:
+            print("[Datadog Callback] callback disabled: skipping")
             return
 
         # Read config and hostvars
+        print("[Datadog Callback] env var ANSIBLE_DATADOG_CALLBACK_CONF_FILE: %s" % os.environ.get("ANSIBLE_DATADOG_CALLBACK_CONF_FILE"))
         config_path = os.environ.get('ANSIBLE_DATADOG_CALLBACK_CONF_FILE', os.path.join(os.path.dirname(__file__), "datadog_callback.yml"))
+
+        print("[Datadog Callback] final config path: %s" % config_path)
+
         api_key, dd_url, dd_site = self._load_conf(config_path)
+        print("[Datadog Callback] values from configuration or env: api_key ending with: %s" % api_key[-5:])
+        print("[Datadog Callback] values from configuration or env: dd_url: %s" % dd_url)
+        print("[Datadog Callback] values from configuration or env: dd_site: %s" % dd_site)
 
         # If there is no api key defined in config file, try to get it from hostvars
         if api_key == '':
+            print("[Datadog Callback] api_key was not set through configuration file or environmnent: looking into hostvars")
             hostvars = self.play.get_variable_manager()._hostvars
 
             if not hostvars:
-                print("No api_key found in the config file ({0}) and hostvars aren't set: disabling Datadog callback plugin".format(config_path))
+                print("[Datadog Callback] No api_key found in the config file ({0}) and hostvars aren't set: disabling Datadog callback plugin".format(config_path))
                 self.disabled = True
             else:
+                print("[Datadog Callback] hostvars detected for localhost: %s" % ('localhost' in hostvars))
                 try:
+                    print("[Datadog Callback] hostvars['localhost']['datadog_api_key'] ending with: %s" % hostvars.get('localhost', {}).get('datadog_api_key', "None")[-5:])
+                    print("[Datadog Callback] hostvars['localhost']['datadog_url']: %s" %  hostvars.get('localhost', {}).get('datadog_url', "None"))
+                    print("[Datadog Callback] hostvars['localhost']['datadog_site']: %s"% hostvars.get('localhost', {}).get('datadog_site', "None"))
                     api_key = hostvars['localhost']['datadog_api_key']
                     if not dd_url:
                         dd_url = hostvars['localhost'].get('datadog_url')
@@ -262,8 +286,12 @@ class CallbackModule(CallbackBase):
             else:
                 dd_url = DEFAULT_DD_URL # default to Datadog US
 
+        print("[Datadog Callback] final api_key ending with: %s" % api_key[-5:])
+        print("[Datadog Callback] final dd_url: %s" % dd_url)
+
         # Set up API client and send a start event
         if not self.disabled:
+            print("[Datadog Callback] initializing datadog package")
             datadog.initialize(api_key=api_key, api_host=dd_url)
 
             self.send_playbook_event(
@@ -274,6 +302,8 @@ class CallbackModule(CallbackBase):
                     self._inventory_name),
                 event_type='start',
             )
+        else:
+            print("[Datadog Callback] callback is disabled")
 
     def playbook_on_stats(self, stats):
         total_tasks = 0
