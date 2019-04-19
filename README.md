@@ -14,6 +14,8 @@ The following python libraries are required on the Ansible server:
 Ansible <=1.9 is no longer supported by this callback. The latest compatible
 version is tagged with `1.0.2`.
 
+For Mac OS X users: If you're running an older version of OS-installed python (e.g. python 2.7.10), you may need to [upgrade](https://github.com/kennethreitz/requests/issues/3883#issuecomment-281182498) to a newer version of OpenSSL (`pip install pyopenssl idna`).
+
 ## Installation
 
 Once the required libraries (see above) have been installed on the server:
