@@ -56,7 +56,7 @@ class CallbackModule(CallbackBase):
         conf_dict = {}
         if os.path.isfile(file_path):
             with open(file_path, 'r') as conf_file:
-                conf_dict = yaml.load(conf_file)
+                conf_dict = yaml.load(conf_file, Loader=yaml.FullLoader)
 
         api_key = os.environ.get('DATADOG_API_KEY', conf_dict.get('api_key', ''))
         dd_url = os.environ.get('DATADOG_URL', conf_dict.get('url', ''))
