@@ -1,6 +1,9 @@
 CHANGELOG
 =========
 
+# 2.5.1 / 2019-05-17
+* [IMPROVEMENT] Use PyYaml's "FullLoader" to avoid unsafe load. See [#45][] (thanks to [@brandonshough][])
+
 # 2.5.0 / 2019-02-07
 * [FEATURE] Add support for "site" configuration.
 
