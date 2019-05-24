@@ -4,6 +4,7 @@ import getpass
 import logging
 import os
 import time
+from packaging import version
 
 try:
     import datadog
@@ -13,8 +14,14 @@ except ImportError:
     HAS_MODULES = False
 
 
+import ansible
 from ansible.plugins.callback import CallbackBase
 from __main__ import cli
+
+ANSIBLE_NEW = False
+if version.parse(ansible.__version__) >= version.parse('2.8.0'):
+    ANSIBLE_NEW = True
+    from ansible.context import CLIARGS
 
 DEFAULT_DD_URL = "https://api.datadoghq.com"
 
@@ -33,7 +40,10 @@ class CallbackModule(CallbackBase):
         self._start_time = time.time()
         self._options = None
         if cli:
-            self._options = cli.options
+            if ANSIBLE_NEW:
+                self._options = CLIARGS
+            else:
+                self._options = cli.options
 
         # self.playbook is set in the `v2_playbook_on_start` callback method
         self.playbook = None
@@ -217,14 +227,17 @@ class CallbackModule(CallbackBase):
         self.playbook = playbook
 
         playbook_file_name = self.playbook._file_name
-        inventory = self._options.inventory
+        if ANSIBLE_NEW:
+            inventory = self._options['inventory']
+        else:
+            inventory = self._options.inventory
 
         self.start_timer()
 
         # Set the playbook name from its filename
         self._playbook_name, _ = os.path.splitext(
             os.path.basename(playbook_file_name))
-        if isinstance(inventory, list):
+        if isinstance(inventory, list) or isinstance(inventory, tuple):
             inventory = ','.join(inventory)
         self._inventory_name = ','.join([os.path.basename(os.path.realpath(name)) for name in inventory.split(',') if name])
 
