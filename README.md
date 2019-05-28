@@ -10,6 +10,7 @@ The following python libraries are required on the Ansible server:
 
 - [`datadogpy`](https://github.com/DataDog/datadogpy/)
 - `pyyaml` (install with `pip install pyyaml`)
+- `packaging` (install with `pip install packaging`)
 
 Ansible <=1.9 is no longer supported by this callback. The latest compatible
 version is tagged with `1.0.2`.
