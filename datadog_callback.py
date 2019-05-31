@@ -8,13 +8,20 @@ import time
 try:
     import datadog
     import yaml
+    from packaging import version
     HAS_MODULES = True
 except ImportError:
     HAS_MODULES = False
 
 
+import ansible
 from ansible.plugins.callback import CallbackBase
 from __main__ import cli
+
+ANSIBLE_ABOVE_28 = False
+if HAS_MODULES and version.parse(ansible.__version__) >= version.parse('2.8.0'):
+    ANSIBLE_ABOVE_28 = True
+    from ansible.context import CLIARGS
 
 DEFAULT_DD_URL = "https://api.datadoghq.com"
 
@@ -22,7 +29,7 @@ class CallbackModule(CallbackBase):
     def __init__(self):
         if not HAS_MODULES:
             self.disabled = True
-            print('Datadog callback disabled: missing "datadog" and/or "yaml" python package.')
+            print('Datadog callback disabled: missing "datadog", "yaml", and/or "packaging" python package.')
         else:
             self.disabled = False
             # Set logger level - datadog api and urllib3
@@ -32,8 +39,11 @@ class CallbackModule(CallbackBase):
         self._playbook_name = None
         self._start_time = time.time()
         self._options = None
-        if cli:
-            self._options = cli.options
+        if HAS_MODULES and cli:
+            if ANSIBLE_ABOVE_28:
+                self._options = CLIARGS
+            else:
+                self._options = cli.options
 
         # self.playbook is set in the `v2_playbook_on_start` callback method
         self.playbook = None
@@ -217,14 +227,17 @@ class CallbackModule(CallbackBase):
         self.playbook = playbook
 
         playbook_file_name = self.playbook._file_name
-        inventory = self._options.inventory
+        if ANSIBLE_ABOVE_28:
+            inventory = self._options['inventory']
+        else:
+            inventory = self._options.inventory
 
         self.start_timer()
 
         # Set the playbook name from its filename
         self._playbook_name, _ = os.path.splitext(
             os.path.basename(playbook_file_name))
-        if isinstance(inventory, list):
+        if isinstance(inventory, (list, tuple)):
             inventory = ','.join(inventory)
         self._inventory_name = ','.join([os.path.basename(os.path.realpath(name)) for name in inventory.split(',') if name])
 
