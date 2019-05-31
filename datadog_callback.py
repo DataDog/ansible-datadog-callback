@@ -4,6 +4,7 @@ import getpass
 import logging
 import os
 import time
+import socket
 
 try:
     import datadog
@@ -228,6 +229,27 @@ class CallbackModule(CallbackBase):
             inventory = ','.join(inventory)
         self._inventory_name = ','.join([os.path.basename(os.path.realpath(name)) for name in inventory.split(',') if name])
 
+
+    def get_from_hostvars(self, variable_name, required=False):
+        hostvars = self.play.get_variable_manager()._hostvars
+        if not hostvars:
+            raise Exception("hostvars could not be loaded")
+        hosts = [ 'localhost', socket.gethostname() ]
+        if os.environ.get("ANSIBLE_DATADOG_CALLBACK_INVENTORY_HOST"):
+            hosts.insert(0, os.environ.get("ANSIBLE_DATADOG_CALLBACK_INVENTORY_HOST"))
+        for host in hosts:
+            if host not in hostvars:
+                continue
+            value = hostvars[host].get(variable_name, None)
+            if value is not None:
+                return value
+        if required:
+            raise Exception("variable {} is not defined in the host vars for hosts: {}".format(
+                variable_name, hosts))
+        else:
+            return None
+
+
     def v2_playbook_on_play_start(self, play):
         # On Ansible v2, Ansible doesn't set `self.play` automatically
         self.play = play
@@ -240,21 +262,16 @@ class CallbackModule(CallbackBase):
 
         # If there is no api key defined in config file, try to get it from hostvars
         if api_key == '':
-            hostvars = self.play.get_variable_manager()._hostvars
-
-            if not hostvars:
-                print("No api_key found in the config file ({0}) and hostvars aren't set: disabling Datadog callback plugin".format(config_path))
+            try:
+                api_key = self.get_from_hostvars('datadog_api_key', True)
+                if not dd_url:
+                    dd_url = self.get_from_hostvars('datadog_url')
+                if not dd_site:
+                    dd_site = self.get_from_hostvars('datadog_site')
+            except Exception as e:
+                print('No "api_key" found in the config file ({0}) and could not load from the inventory ({1}): disabling Datadog callback plugin'.
+                        format(config_path, e))
                 self.disabled = True
-            else:
-                try:
-                    api_key = hostvars['localhost']['datadog_api_key']
-                    if not dd_url:
-                        dd_url = hostvars['localhost'].get('datadog_url')
-                    if not dd_site:
-                        dd_site = hostvars['localhost'].get('datadog_site')
-                except Exception as e:
-                    print('No "api_key" found in the config file ({0}) and "datadog_api_key" is not set in the hostvars: disabling Datadog callback plugin'.format(config_path))
-                    self.disabled = True
 
         if not dd_url:
             if dd_site:
