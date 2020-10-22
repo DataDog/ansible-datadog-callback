@@ -24,8 +24,10 @@ Once the required libraries (see above) have been installed on the server:
 1. Copy `datadog_callback.py` to your playbook callback directory (by default
 `callback_plugins/` in your playbook's root directory). Create the directory
 if it doesn't exist.
-2. You have 3 ways to set your API key. The callback will first use the
-   environment variable, then the configuration file, then hostvars/vault.
+2. You have 4 ways to set your API key. The callback will first use the
+   environment variable, then the configuration file, then hostvars/vault,
+   and a specific host's hostvars.  For more information, see the environment
+   variable configuration.
 
 ##### Using environment variable
 
@@ -36,6 +38,11 @@ variable `DATADOG_SITE=datadoghq.eu`.
 
 To send data to a custom URL you can set the environment
 variable `DATADOG_URL=<custom URL>`.
+
+To configure the callback to use variables from a specific inventory host,
+you can set the environment variable `ANSIBLE_DATADOG_CALLBACK_INVENTORY_HOST`.
+The callback will then query that host's variables for the API key, datadog URL,
+and datadog site.
 
 ##### Using a yaml file
 
