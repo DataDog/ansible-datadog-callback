@@ -277,7 +277,7 @@ class CallbackModule(CallbackBase):
 
         # Set up API client and send a start event
         if not self.disabled:
-            datadog.initialize(api_key=api_key, api_host=dd_url)
+            datadog.initialize(api_key=str(api_key), api_host=dd_url)
 
             self.send_playbook_event(
                 'Ansible play "{0}" started in playbook "{1}" by "{2}" against "{3}"'.format(
