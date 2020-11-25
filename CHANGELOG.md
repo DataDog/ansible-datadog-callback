@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+# 2.6.0 / 2020-11-25
+* [BUGFIX] Cast api_key as string in datadog.initialize [#54][]
+* [BUGFIX] Add hook to handle incompatibilities between Ansible 2.7 and 2.8 [#47][] (Thanks [@rsdcobalt][])
+
 # 2.5.1 / 2019-05-17
 * [IMPROVEMENT] Use PyYaml's "FullLoader" to avoid unsafe load. See [#45][] (thanks to [@brandonshough][])
 
@@ -49,7 +53,13 @@ First release, compatible with Ansible v1 & v2
 [#28]: https://github.com/DataDog/ansible-datadog-callback/issues/28
 [#30]: https://github.com/DataDog/ansible-datadog-callback/issues/30
 [#33]: https://github.com/DataDog/ansible-datadog-callback/issues/33
+[#34]: https://github.com/DataDog/ansible-datadog-callback/issues/34
+[#45]: https://github.com/DataDog/ansible-datadog-callback/issues/45
+[#47]: https://github.com/DataDog/ansible-datadog-callback/issues/47
+[#54]: https://github.com/DataDog/ansible-datadog-callback/issues/54
 [@DSpeichert]: https://github.com/DSpeichert
+[@brandonshough]: https://github.com/brandonshough
 [@dobber]: https://github.com/dobber
 [@n0ts]: https://github.com/n0ts
 [@pyconsult]: https://github.com/pyconsult
+[@rsdcobalt]: https://github.com/rsdcobalt
