@@ -4,6 +4,7 @@ import getpass
 import logging
 import os
 import time
+import subprocess
 
 try:
     import datadog
@@ -96,6 +97,18 @@ class CallbackModule(CallbackBase):
             print('Couldn\'t send event "{0}" to Datadog'.format(title))
             print(e)
 
+    def get_branch_info(self):
+        command = "git symbolic-ref --short HEAD"
+        try:
+            out = subprocess.check_output(command.split())
+            branch = out.decode().rstrip()
+        except Exception as e:
+            print('Couldn\'t find git branch information, sending None')
+            print(e)
+            branch = "None"
+
+        return branch
+
     # Send event, aggregated with other task-level events from the same host
     def send_task_event(self, title, alert_type='info', text='', tags=None, host=None):
         if getattr(self, 'play', None):
@@ -151,7 +164,7 @@ class CallbackModule(CallbackBase):
     # Default tags sent with events and metrics
     @property
     def default_tags(self):
-        return ['playbook:{0}'.format(self._playbook_name)]
+        return ['playbook:{0}'.format(self._playbook_name), 'git-branch:{0}'.format(self.get_branch_info)]
 
     @staticmethod
     def pluralize(number, noun):
