@@ -164,7 +164,7 @@ class CallbackModule(CallbackBase):
     # Default tags sent with events and metrics
     @property
     def default_tags(self):
-        return ['playbook:{0}'.format(self._playbook_name), 'git-branch:{0}'.format(self.get_branch_info)]
+        return ['playbook:{0}'.format(self._playbook_name), 'git-branch:{0}'.format(self.get_branch_info())]
 
     @staticmethod
     def pluralize(number, noun):
