@@ -185,8 +185,17 @@ class CallbackModule(CallbackBase):
 
         return event_text, module_name_tag
 
+    def get_dd_hostname(self, ansible_hostname):
+        """ This function allows providing custom logic that transforms an Ansible
+        inventory hostname to a Datadog hostname.
+        """
+        dd_hostname = ansible_hostname
+        # provide your code to obtain Datadog hostname from Ansible inventory hostname
+        return dd_hostname
+
     ### Ansible callbacks ###
     def runner_on_failed(self, host, res, ignore_errors=False):
+        host = self.get_dd_hostname(host)
         # don't post anything if user asked to ignore errors
         if ignore_errors:
             return
@@ -201,6 +210,7 @@ class CallbackModule(CallbackBase):
         )
 
     def runner_on_ok(self, host, res):
+        host = self.get_dd_hostname(host)
         # Only send an event when the task has changed on the host
         if res.get('changed'):
             event_text, module_name_tag = self.format_result(res)
@@ -213,6 +223,7 @@ class CallbackModule(CallbackBase):
             )
 
     def runner_on_unreachable(self, host, res):
+        host = self.get_dd_hostname(host)
         event_text = "\n$$$\n{0}\n$$$\n".format(res)
         self.send_task_event(
             'Ansible failed on unreachable host "{0}"'.format(host),
@@ -294,6 +305,7 @@ class CallbackModule(CallbackBase):
         total_errors = 0
         error_hosts = []
         for host in stats.processed:
+            host = self.get_dd_hostname(host)
             # Aggregations for the event text
             summary = stats.summarize(host)
             total_tasks += sum([summary['ok'], summary['failures'], summary['skipped']])
@@ -327,6 +339,7 @@ class CallbackModule(CallbackBase):
             event_title += ' with errors'
             event_text += "\nErrors occurred on the following hosts:\n%%%\n"
             for host, failures, unreachable in error_hosts:
+                host = self.get_dd_hostname(host)
                 event_text += "- `{0}` (failure: {1}, unreachable: {2})\n".format(
                     host,
                     failures,

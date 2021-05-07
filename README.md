@@ -81,6 +81,38 @@ callback_whitelist = datadog_callback
 
 You should start seeing Ansible events and metrics appear on Datadog when your playbook is run.
 
+## Inventory hostnames vs Datadog hostnames
+
+By default, the events reported for individual hosts use inventory hostnames
+as the value for the event `host` tag. This can lead to problems when Ansible
+inventory hostnames are different than hostnames detected by the Datadog Agent.
+In this case, the events are going to be reported for a seemingly non-existent
+host (the inventory hostname), which will then disappear after some time
+of inactivity. There are several possible solutions in this case. Let's assume
+that we have a host `some.hostname.com` which is detected as
+`datadog.detected.hostname.com` by the Datadog Agent:
+
+* Use Ansible [inventory aliases](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#inventory-aliases):
+  * Original inventory file:
+    ```
+    [servers]
+    some.hostname.com
+    ```
+  * Adjusted inventory file using alias:
+    ```
+    [servers]
+    datadog.detected.hostname.com ansible_host=some.hostname.com
+    ```
+* Overwrite the `get_dd_hostname` method in `datadog_callback.py`:
+  ```
+  def get_dd_hostname(self, ansible_hostname):
+     """ This function allows providing custom logic that transforms an Ansible
+     inventory hostname to a Datadog hostname.
+     """
+     dd_hostname = ansible_hostname.replace("some.", "datadog.detected.")
+     return dd_hostname
+  ```
+
 ## Contributing to ansible-datadog-callback
 
 1. Fork it
