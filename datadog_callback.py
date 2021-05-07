@@ -339,7 +339,6 @@ class CallbackModule(CallbackBase):
             event_title += ' with errors'
             event_text += "\nErrors occurred on the following hosts:\n%%%\n"
             for host, failures, unreachable in error_hosts:
-                host = self.get_dd_hostname(host)
                 event_text += "- `{0}` (failure: {1}, unreachable: {2})\n".format(
                     host,
                     failures,
