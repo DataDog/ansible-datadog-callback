@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+# 2.7.0 / 2021-05-10
+
+* [IMPROVEMENT] Explain Ansible/Datadog hostname mismatch, allow overriding hostname. See [#60][]
+
 # 2.6.0 / 2020-11-25
 * [BUGFIX] Cast api_key as string in datadog.initialize [#54][]
 * [BUGFIX] Add hook to handle incompatibilities between Ansible 2.7 and 2.8 [#47][] (Thanks [@rsdcobalt][])
@@ -57,6 +61,7 @@ First release, compatible with Ansible v1 & v2
 [#45]: https://github.com/DataDog/ansible-datadog-callback/issues/45
 [#47]: https://github.com/DataDog/ansible-datadog-callback/issues/47
 [#54]: https://github.com/DataDog/ansible-datadog-callback/issues/54
+[#60]: https://github.com/DataDog/ansible-datadog-callback/issues/60
 [@DSpeichert]: https://github.com/DSpeichert
 [@brandonshough]: https://github.com/brandonshough
 [@dobber]: https://github.com/dobber
