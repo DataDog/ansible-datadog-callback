@@ -4,27 +4,20 @@ A callback to send Ansible events and metrics to Datadog.
 
 ## Requirements
 
-Ansible >=2.0
+Ansible >= 2.0 and Python packages listed in the `requirements.txt` file.
 
-The following python libraries are required on the Ansible server:
-
-- [`datadogpy`](https://github.com/DataDog/datadogpy/)
-- `pyyaml` (install with `pip install pyyaml`)
-- `packaging` (install with `pip install packaging`)
-
-Ansible <=1.9 is no longer supported by this callback. The latest compatible
+Ansible <= 1.9 is no longer supported by this callback. The latest compatible
 version is tagged with `1.0.2`.
 
 For Mac OS X users: If you're running an older version of OS-installed python (e.g. python 2.7.10), you may need to [upgrade](https://github.com/kennethreitz/requests/issues/3883#issuecomment-281182498) to a newer version of OpenSSL (`pip install pyopenssl idna`).
 
 ## Installation
 
-Once the required libraries (see above) have been installed on the server:
-
-1. Copy `datadog_callback.py` to your playbook callback directory (by default
+1. Install dependencies by running `pip install -r requirements.txt`.
+2. Copy `datadog_callback.py` to your playbook callback directory (by default
 `callback_plugins/` in your playbook's root directory). Create the directory
 if it doesn't exist.
-2. You have 3 ways to set your API key. The callback will first use the
+3. You have 3 ways to set your API key. The callback will first use the
    environment variable, then the configuration file, then hostvars/vault.
 
 ##### Using environment variable
