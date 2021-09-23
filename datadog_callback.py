@@ -5,13 +5,13 @@ import logging
 import os
 import time
 
+IMPORT_ERROR = None
 try:
     import datadog
     import yaml
     from packaging import version
-    HAS_MODULES = True
-except ImportError:
-    HAS_MODULES = False
+except ImportError as e:
+    IMPORT_ERROR = str(e)
 
 
 import ansible
@@ -19,7 +19,7 @@ from ansible.plugins.callback import CallbackBase
 from __main__ import cli
 
 ANSIBLE_ABOVE_28 = False
-if HAS_MODULES and version.parse(ansible.__version__) >= version.parse('2.8.0'):
+if IMPORT_ERROR is None and version.parse(ansible.__version__) >= version.parse('2.8.0'):
     ANSIBLE_ABOVE_28 = True
     from ansible.context import CLIARGS
 
@@ -27,9 +27,13 @@ DEFAULT_DD_URL = "https://api.datadoghq.com"
 
 class CallbackModule(CallbackBase):
     def __init__(self):
-        if not HAS_MODULES:
+        if IMPORT_ERROR is not None:
             self.disabled = True
-            print('Datadog callback disabled: missing "datadog", "yaml", and/or "packaging" python package.')
+            print(
+                'Datadog callback disabled because of a dependency problem: {}. '
+                'Please install requirements with "pip install -r requirements.txt"'
+                .format(IMPORT_ERROR)
+            )
         else:
             self.disabled = False
             # Set logger level - datadog api and urllib3
@@ -39,7 +43,7 @@ class CallbackModule(CallbackBase):
         self._playbook_name = None
         self._start_time = time.time()
         self._options = None
-        if HAS_MODULES and cli:
+        if IMPORT_ERROR is None and cli:
             if ANSIBLE_ABOVE_28:
                 self._options = CLIARGS
             else:
