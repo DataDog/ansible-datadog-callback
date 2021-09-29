@@ -69,8 +69,14 @@ class CallbackModule(CallbackBase):
     def _load_conf(self, file_path):
         conf_dict = {}
         if os.path.isfile(file_path):
+            try:
+                loader = yaml.FullLoader
+            except AttributeError:
+                # on pyyaml < 5.1, there's no FullLoader,
+                # but we can still use SafeLoader
+                loader = yaml.SafeLoader
             with open(file_path, 'r') as conf_file:
-                conf_dict = yaml.load(conf_file, Loader=yaml.FullLoader)
+                conf_dict = yaml.load(conf_file, Loader=loader)
 
         api_key = os.environ.get('DATADOG_API_KEY', conf_dict.get('api_key', ''))
         dd_url = os.environ.get('DATADOG_URL', conf_dict.get('url', ''))
