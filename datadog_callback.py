@@ -82,7 +82,7 @@ class CallbackModule(CallbackBase):
         try:
             datadog.api.Event.create(
                 title=title,
-                text=text,
+                text=text.replace('@','(@)'), # avoid notifying @ mentions
                 alert_type=alert_type,
                 priority=priority,
                 tags=tags,
