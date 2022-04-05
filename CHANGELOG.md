@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+# 2.8.0 / 2022-04-05
+
+* [BUGFIX] Replace @ in events to avoid triggering notifications [#68][]
+* [IMPROVEMENT] Provide better message on import errors to ease debugging [#65][]
+* [IMPROVEMENT] Add requirements.txt file [#64][]
+
 # 2.7.0 / 2021-05-10
 
 * [IMPROVEMENT] Explain Ansible/Datadog hostname mismatch, allow overriding hostname. See [#60][]
@@ -62,6 +68,9 @@ First release, compatible with Ansible v1 & v2
 [#47]: https://github.com/DataDog/ansible-datadog-callback/issues/47
 [#54]: https://github.com/DataDog/ansible-datadog-callback/issues/54
 [#60]: https://github.com/DataDog/ansible-datadog-callback/issues/60
+[#64]: https://github.com/DataDog/ansible-datadog-callback/issues/64
+[#65]: https://github.com/DataDog/ansible-datadog-callback/issues/65
+[#68]: https://github.com/DataDog/ansible-datadog-callback/issues/68
 [@DSpeichert]: https://github.com/DSpeichert
 [@brandonshough]: https://github.com/brandonshough
 [@dobber]: https://github.com/dobber
