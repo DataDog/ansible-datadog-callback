@@ -16,7 +16,10 @@ except ImportError as e:
 
 import ansible
 from ansible.plugins.callback import CallbackBase
-from __main__ import cli
+try:
+    from __main__ import cli
+except ImportError:
+    cli = False
 
 ANSIBLE_ABOVE_28 = False
 if IMPORT_ERROR is None and version.parse(ansible.__version__) >= version.parse('2.8.0'):
@@ -43,10 +46,10 @@ class CallbackModule(CallbackBase):
         self._playbook_name = None
         self._start_time = time.time()
         self._options = None
-        if IMPORT_ERROR is None and cli:
+        if IMPORT_ERROR is None:
             if ANSIBLE_ABOVE_28:
                 self._options = CLIARGS
-            else:
+            elif cli:
                 self._options = cli.options
 
         # self.playbook is set in the `v2_playbook_on_start` callback method
