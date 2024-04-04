@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+# 2.8.1 / 2024-04-05
+
+* [BUGFIX] Fix `import name 'cli' from '__main__' error [#70][] (Thanks [@tcaddy][])
+
 # 2.8.0 / 2022-04-05
 
 * [BUGFIX] Replace @ in events to avoid triggering notifications [#68][]
@@ -71,9 +75,11 @@ First release, compatible with Ansible v1 & v2
 [#64]: https://github.com/DataDog/ansible-datadog-callback/issues/64
 [#65]: https://github.com/DataDog/ansible-datadog-callback/issues/65
 [#68]: https://github.com/DataDog/ansible-datadog-callback/issues/68
+[#70]: https://github.com/DataDog/ansible-datadog-callback/issues/70
 [@DSpeichert]: https://github.com/DSpeichert
 [@brandonshough]: https://github.com/brandonshough
 [@dobber]: https://github.com/dobber
 [@n0ts]: https://github.com/n0ts
 [@pyconsult]: https://github.com/pyconsult
 [@rsdcobalt]: https://github.com/rsdcobalt
+[@tcaddy]: https://github.com/tcaddy
