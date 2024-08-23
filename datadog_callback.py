@@ -28,6 +28,7 @@ if IMPORT_ERROR is None and version.parse(ansible.__version__) >= version.parse(
 
 DEFAULT_DD_URL = "https://api.datadoghq.com"
 
+
 class CallbackModule(CallbackBase):
     def __init__(self):
         if IMPORT_ERROR is not None:
@@ -175,9 +176,10 @@ class CallbackModule(CallbackBase):
 
     # format helper for event_text
     @staticmethod
-    def format_result(res):
+    def format_result(result):
+        res = result._result
+        module_name = result._task.action
         msg = "$$$\n{0}\n$$$\n".format(res['msg']) if res.get('msg') else ""
-        module_name = 'undefined'
 
         if res.get('censored'):
             event_text = res.get('censored')
@@ -185,14 +187,13 @@ class CallbackModule(CallbackBase):
             event_text = msg
         else:
             invocation = res['invocation']
-            module_name = invocation.get('module_name', 'undefined')
             event_text = "$$$\n{0}[{1}]\n$$$\n".format(module_name, invocation.get('module_args', ''))
             event_text += msg
-            if 'module_stdout' in res:
+            if 'stdout' in res:
                 # On Ansible v2, details on internal failures of modules are not reported in the `msg`,
                 # so we have to extract the info differently
                 event_text += "$$$\n{0}\n{1}\n$$$\n".format(
-                    res.get('module_stdout', ''), res.get('module_stderr', ''))
+                    res.get('stdout', ''), res.get('stderr', ''))
 
         module_name_tag = 'module:{0}'.format(module_name)
 
@@ -207,13 +208,13 @@ class CallbackModule(CallbackBase):
         return dd_hostname
 
     ### Ansible callbacks ###
-    def runner_on_failed(self, host, res, ignore_errors=False):
-        host = self.get_dd_hostname(host)
+    def v2_runner_on_failed(self, result, ignore_errors=False):
+        host = self.get_dd_hostname(result._host.get_name())
         # don't post anything if user asked to ignore errors
         if ignore_errors:
             return
 
-        event_text, module_name_tag = self.format_result(res)
+        event_text, module_name_tag = self.format_result(result)
         self.send_task_event(
             'Ansible task failed on "{0}"'.format(host),
             alert_type='error',
@@ -222,11 +223,11 @@ class CallbackModule(CallbackBase):
             host=host,
         )
 
-    def runner_on_ok(self, host, res):
-        host = self.get_dd_hostname(host)
+    def v2_runner_on_ok(self, result):
+        host = self.get_dd_hostname(result._host.get_name())
         # Only send an event when the task has changed on the host
-        if res.get('changed'):
-            event_text, module_name_tag = self.format_result(res)
+        if result._result.get('changed'):
+            event_text, module_name_tag = self.format_result(result)
             self.send_task_event(
                 'Ansible task changed on "{0}"'.format(host),
                 alert_type='success',
@@ -235,8 +236,9 @@ class CallbackModule(CallbackBase):
                 host=host,
             )
 
-    def runner_on_unreachable(self, host, res):
-        host = self.get_dd_hostname(host)
+    def v2_runner_on_unreachable(self, result):
+        res = result._result
+        host = self.get_dd_hostname(result._host.get_name())
         event_text = "\n$$$\n{0}\n$$$\n".format(res)
         self.send_task_event(
             'Ansible failed on unreachable host "{0}"'.format(host),
