@@ -286,7 +286,7 @@ class CallbackModule(CallbackBase):
                 self.disabled = True
             else:
                 try:
-                    api_key = hostvars['localhost']['datadog_api_key']
+                    api_key = str(hostvars['localhost']['datadog_api_key'])
                     if not dd_url:
                         dd_url = hostvars['localhost'].get('datadog_url')
                     if not dd_site:
