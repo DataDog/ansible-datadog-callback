@@ -30,6 +30,8 @@ DEFAULT_DD_URL = "https://api.datadoghq.com"
 
 
 class CallbackModule(CallbackBase):
+    # Ansible 2.16+ requires this attribute to handle implicit tasks
+    wants_implicit_tasks = False
     def __init__(self):
         if IMPORT_ERROR is not None:
             self.disabled = True
